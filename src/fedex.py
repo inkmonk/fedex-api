@@ -43,7 +43,7 @@ def addAddress(client, street_lines = None, city = None,
     street_lines: Type list of string
     """
     address = client.factory.create('Address')
-    address.City = City
+    address.City = city
     address.StreetLines = street_lines
     address.StateOrProvinceCode = state_code
     address.PostalCode = postal_code
@@ -117,22 +117,22 @@ def addParty(client, duty_account):
         
 def addPayor(client, duty_account, country_code):
     payor = client.factory.create('Payor')
-    payor.ResponsibleParty = addParty(duty_account)
+    payor.ResponsibleParty = addParty(client, duty_account)
     payor.Address = addAddress(client, country_code=country_code)
     return payor
     
     
         
-def addPayment(client, payment_type):
+def addPayment(client, payment_type, duty_account, country_code):
     payment = client.factory.create('Payment')
     payment.PaymentType = addPaymentTypeValue(client, payment_type)
     payment.Payor = addPayor(client, duty_account, country_code)
     return payment
         
 def addCustomerClearanceDetail(client, doc_value, cus_currency, cus_amount, commodities,
-                               payment_type):
+                               payment_type, duty_account, country_code, filing_option):
     ccd = client.factory.create('CustomsClearanceDetail')
-    ccd.DutiesPayment = addPayment(client, payment_type)
+    ccd.DutiesPayment = addPayment(client, payment_type, duty_account, country_code)
     ccd.DocumentContent = addDocumentContentValue(client, doc_value)
     ccd.CustomsValue = addMoney(client, cus_currency, cus_amount)
     ccd.Commodities = commodities
