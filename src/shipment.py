@@ -12,6 +12,24 @@ class Shipment:
     def setConfig(self, fconfig):
         self.config = fconfig
 
+    def create_shipment(self):
+        pass
+
+class LabelSpecification:
+
+    def __init__(self, format_type, image_type, stock_type):
+        self.format_type = format_type
+        self.image_type = image_type
+        self.stock_type = stock_type
+
+    def todict(self):
+        return { 'LabelFormatType': self.format_type,
+                 'ImageType': self.image_type,
+                 'Stock_Type': self.stock_type }
+        
+    def __repr__(self):
+        return self.format_type
+
 if __name__ == '__main__':        
     s = Shipment()
     print s.client
