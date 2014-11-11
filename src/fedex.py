@@ -1,3 +1,4 @@
+from suds.client import Client
 from datetime import datetime
 
 def createWebAuthenticationCredential(client, key, password):
@@ -104,11 +105,13 @@ def addDocumentContentValue(client, content):
     dc = client.factory.create('InternationalDocumentContentType')
     if content == "NON_DOCUMENTS":
         return dc.NON_DOCUMENTS
+    raise Exception("Should not reach here")
 
 def addPaymentTypeValue(client, payment_type):
     pt = client.factory.create('PaymentType')
     if payment_type == "SENDER":
         return pt.SENDER
+    raise Exception("Should not reach here")
 
 def addParty(client, duty_account):
     party = client.factory.create('Party')
@@ -139,8 +142,57 @@ def addCustomerClearanceDetail(client, doc_value, cus_currency, cus_amount, comm
     ccd.ExportDetail = addExportDetail(client, filing_option)
     return ccd
 
-    
+def addDropoffValue(client, value):
+    dv = client.factory.create('DropoffType')
+    if value == "BUSINESS_SERVICE_CENTER":
+        return dv.BUSINESS_SERVICE_CENTER
+    if value == "DROP_BOX":
+        return dv.DROP_BOX
+    if value == "REGULAR_PICKUP":
+        return dv.REGULAR_PICKUP
+    if value == "REQUEST_COURIER":
+        return dv.REQUEST_COURIER
+    if value == "STATION":
+        return dv.STATION
+    raise Exception("Should not reach here")
 
+def addServiceValue(client, value):
+    s = client.factory.create('ServiceType')
+    if value == "INTERNATIONAL_PRIORITY":
+        return s.INTERNATIONAL_PRIORITY
+    raise Exception("Should not reach here")
+
+def addPackingValue(client, value):
+    p = client.factory.create('PackagingType')
+    if value == "YOUR_PACKAGING":
+        return p.YOUR_PACKAGING
+    raise Exception("Should not reach here")
+
+def addFilingValue(client, value):
+    fv = client.factory.create('B13AFilingOptionType')
+    if value == 'NOT_REQUIRED':
+        return fv.NOT_REQUIRED
+    raise Exception("Should not reach here")
+
+def addLabelFormatValue(client, value):
+    lf = client.factory.create('LabelFormatType')
+    if value == "COMMON2D":
+        return lf.COMMON2D
+    raise Exception("Should not reach here")
+
+def addShippingImageType(client, value):
+    si = client.factory.create('ShippingDocumentImageType')
+    if value == "PDF":
+        return si.PDF
+    raise Exception("Should not reach here")
+
+def addLabelStockValue(client, value):
+    ls = client.factory.create('LabelStockType')
+    if value == 'PAPER_4X6':
+        return ls.PAPER_4X6
+    raise Exception("Should not reach here")
+        
+    
 # def addRequestedShipment(client, client, pname, c_name, phone_no, street_lines, city,
 #                          state_code, postal_code, country_code, bill_account_no,
 #                          payment_type):
@@ -156,3 +208,4 @@ def addCustomerClearanceDetail(client, doc_value, cus_currency, cus_amount, comm
 #                                                           payment_type, country_code)
 #     rs.CustomsClearanceDetail = addCustomerClearanceDetail(client, doc_value, cus_currency, cus_amount, commodities,
 #                                                            payment_type)
+# client = Client('file:///home/dev/github/fedex-api/src/wsdl/ShipService_v15.wsdl')
