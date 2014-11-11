@@ -24,28 +24,43 @@ class Shipment:
     def setRequestedShipment(self, dropoff_type, service_type, packing_type, shipper_contact, shipper_address,
                              recipient_contact, recipient_address, scp, ccd, label, rpli):
         rs = self.client.factory.create('RequestedShipment')
+        print rs
         rs.ShipTimestamp = datetime.now()
-        rs.DropoffType = dropoff_type
-        rs.ServiceType = service_type
-        rs.PackagingType = packing_type
+        rs.DropoffType = addDropoffValue(self.client, dropoff_type)
+        rs.ServiceType = addServiceValue(self.client, service_type)
+        rs.PackagingType = addPackingValue(self.client, packing_type)
+        rs.Shipper = self.client.factory.create('Party')
         rs.Shipper.Contact = shipper_contact.soap(self.client)
         rs.Shipper.Address = shipper_address.soap(self.client)
+        rs.Recipient = self.client.factory.create('Party')
         rs.Recipient.Contact = recipient_contact.soap(self.client)
         rs.Recipient.Address = recipient_address.soap(self.client)
+        rs.ShippingChargesPayment = self.client.factory.create('Payment')
         rs.ShippingChargesPayment.PaymentType = addPaymentTypeValue(self.client, scp.payment_type)
+        rs.ShippingChargesPayment.Payor = self.client.factory.create('Payor')
+        rs.ShippingChargesPayment.Payor.ResponsibleParty = self.client.factory.create('Party')
         rs.ShippingChargesPayment.Payor.ResponsibleParty.AccountNumber = scp.account
+        rs.ShippingChargesPayment.Payor.ResponsibleParty.Address = self.client.factory.create('Address')
         rs.ShippingChargesPayment.Payor.ResponsibleParty.Address.CountryCode = scp.country_code
-        rs.CustomsClearanceDetail.DutiesPayment.PaymentType = ccd.payment_type
+        rs.CustomsClearanceDetail = self.client.factory.create('CustomsClearanceDetail')
+        rs.CustomsClearanceDetail.DutiesPayment = self.client.factory.create('Payment')
+        rs.CustomsClearanceDetail.DutiesPayment.PaymentType = addPaymentTypeValue(self.client, ccd.payment_type)
+        rs.CustomsClearanceDetail.DutiesPayment.Payor = self.client.factory.create('Payor')
+        rs.CustomsClearanceDetail.DutiesPayment.Payor.ResponsibleParty = self.client.factory.create('Party')
         rs.CustomsClearanceDetail.DutiesPayment.Payor.ResponsibleParty.AccountNumber = ccd.duty_account
+        rs.CustomsClearanceDetail.DutiesPayment.Payor.ResponsibleParty.Address = self.client.factory.create('Address')
         rs.CustomsClearanceDetail.DutiesPayment.Payor.ResponsibleParty.Address.CountryCode = ccd.country_code
-        rs.CustomsClearanceDetail.DocumentContent = ccd.document_content
+        rs.CustomsClearanceDetail.DocumentContent = addDocumentContentValue(self.client, ccd.document_content)
+        rs.CustomsClearanceDetail.CustomsValue = self.client.factory.create('Money')
         rs.CustomsClearanceDetail.CustomsValue.Currency = ccd.customs_currency
         rs.CustomsClearanceDetail.CustomsValue.Amount = ccd.customs_amount
-        rs.CustomsClearanceDetail.ExportDetail.B13AFilingOption = ccd.filing_option
+        rs.CustomsClearanceDetail.ExportDetail = self.client.factory.create('ExportDetail')
+        rs.CustomsClearanceDetail.ExportDetail.B13AFilingOption = addFilingValue(self.client, ccd.filing_option)
         rs.CustomsClearanceDetail.Commodities = [ c.soap(self.client) for c in ccd.commodity]
-        rs.LabelSpecification.LabelFormatType = label.format_type
-        rs.LabelSpecification.ImageType = label.image_type
-        rs.LabelSpecification.LabelStockType = label.stock_type
+        rs.LabelSpecification = self.client.factory.create('LabelSpecification')
+        rs.LabelSpecification.LabelFormatType = addLabelFormatValue(self.client, label.format_type)
+        rs.LabelSpecification.ImageType = addShippingImageType(self.client, label.image_type)
+        rs.LabelSpecification.LabelStockType = addLabelStockValue(self.client, label.stock_type)
         rs.PackageCount = 1
         rs.RequestedPackageLineItems = [ r.soap(self.client) for r in rpli]
         self.rs = rs
@@ -200,14 +215,14 @@ class PackageItem:
         
 if __name__ == '__main__':        
     s = Shipment()
-    c = FedexConfig("fUDR24fATRGFsyBC", "gQErsywnc3obnPIpnhOIDV16X", "510087046", "118653225")
+    c = FedexConfig("fUDR24fATRGFsyBC", "7wLOO30Z5gmSlzKsjzpwazoHS", "510087046", "118653225")
     s.setConfig(c)
     shipper_contact = Contact('Sender Name', 'Sender Company Name', '1234567890')
     shipper_address = Address('Austin', 'TX', '73301', 'US', ['Address Line 1'])
     recipient_contact = Contact('Sender Name', 'Sender Company Name', '1234567891')
     recipent_address = Address('Richmond', 'BC', 'V7C4V4', 'CA', ['Address Line 1'])
     scp = ShippingChargesPayment("SENDER", c.account_no, 'US')
-    label = LabelSpecification('COMMON2D', 'PDF', 'PAPER_7X4.75')
+    label = LabelSpecification('COMMON2D', 'PDF', 'PAPER_4X6')
     comm = Commodity(1, 'Books', 'US', 'LB', 1.0, 4, 'EA', 'USD', 100)
     ccd = CustomsClearanceDetail("SENDER", c.account_no, 'US', 'NON_DOCUMENTS',
                                  'USD', 100, [comm], 'NOT_REQUIRED')
@@ -216,7 +231,7 @@ if __name__ == '__main__':
                            shipper_contact, shipper_address, recipient_contact, recipent_address,
                            scp, ccd, label, [rpli])
     try:
-        re = s.validate_shipment()
+        re = s.create_shipment() #validate_shipment()
     except suds.WebFault as detail:
         print detail
     #re = s.client.service.deleteShipment(1,2)
